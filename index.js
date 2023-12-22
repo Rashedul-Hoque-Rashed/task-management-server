@@ -52,33 +52,33 @@ async function run() {
 
         const taskCollections = client.db('taskDb').collection('tasks');
 
-        app.get('/tasks', async (req, res) => {
+        app.get('/tasks', verifyToken, async (req, res) => {
             const result = await taskCollections.find().toArray();
             res.send(result)
         })
 
-        app.get('/tasks/:email', async (req, res) => {
+        app.get('/tasks/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const query = { userEmail: email }
             const result = await taskCollections.find(query).toArray();
             res.send(result)
         })
 
-        app.get('/tasks/update/:id', async (req, res) => {
+        app.get('/tasks/update/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await taskCollections.find(query).toArray();
             res.send(result)
         })
 
-        app.delete('/tasks/:id', async (req, res) => {
+        app.delete('/tasks/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = {_id: new ObjectId(id)}
             const result = await taskCollections.deleteOne(query);
             res.send(result)
         })
 
-        app.put("/update/:id", async (req, res) => {
+        app.put("/update/:id", verifyToken, async (req, res) => {
             const id = req.params.id;
             const task = req.body;
             const filter = {_id: new ObjectId(id)};
@@ -95,7 +95,7 @@ async function run() {
             res.send(result);
           })
 
-        app.post('/tasks', async (req, res) => {
+        app.post('/tasks', verifyToken, async (req, res) => {
             const task = req.body;
             const result = await taskCollections.insertOne(task);
             res.send(result)
