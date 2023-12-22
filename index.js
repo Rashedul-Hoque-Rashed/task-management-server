@@ -1,12 +1,19 @@
 const express = require('express');
 const cors = require('cors')
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173',
+],
+    credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 
 
@@ -21,6 +28,22 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
+
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token;
+    if (!token) {
+        return res.status(401).send({ message: 'unauthorized access' })
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'unauthorized access' })
+        }
+        req.user = decoded;
+        next();
+    })
+}
+
 
 async function run() {
     try {
@@ -76,6 +99,24 @@ async function run() {
             const task = req.body;
             const result = await taskCollections.insertOne(task);
             res.send(result)
+        })
+
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' });
+
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none'
+            })
+                .send({ success: true });
+        })
+
+        app.post('/logout', async (req, res) => {
+            const user = req.body;
+            console.log('logging out', user);
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
         })
 
 
