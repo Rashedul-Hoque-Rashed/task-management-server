@@ -9,8 +9,10 @@ const port = process.env.PORT || 5000;
 
 app.use(cors({
     origin: ['http://localhost:5173',
+    'https://task-management-dfa59.web.app',
+    'https://task-management-dfa59.firebaseapp.com',
 ],
-    credentials: true
+    credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -52,7 +54,7 @@ async function run() {
 
         const taskCollections = client.db('taskDb').collection('tasks');
 
-        app.get('/tasks', verifyToken, async (req, res) => {
+        app.get('/tasks', async (req, res) => {
             const result = await taskCollections.find().toArray();
             res.send(result)
         })
@@ -89,6 +91,20 @@ async function run() {
                 deadline: task.deadline,
                 priority: task.priority,
                 description: task.description,
+              }
+            }
+            const result = await taskCollections.updateOne(filter, updateTask, options);
+            res.send(result);
+          })
+
+        app.put("/tasks/status/:id", verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const task = req.body;
+            const filter = {_id: new ObjectId(id)};
+            const options = { upsert: true };
+            const updateTask = {
+              $set: {
+                status: task.status,
               }
             }
             const result = await taskCollections.updateOne(filter, updateTask, options);
