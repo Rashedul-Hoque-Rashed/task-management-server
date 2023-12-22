@@ -64,14 +64,14 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/tasks/update/:id', verifyToken, async (req, res) => {
+        app.get('/tasks/update/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await taskCollections.find(query).toArray();
             res.send(result)
         })
 
-        app.delete('/tasks/:id', verifyToken, async (req, res) => {
+        app.delete('/tasks/:id', async (req, res) => {
             const id = req.params.id;
             const query = {_id: new ObjectId(id)}
             const result = await taskCollections.deleteOne(query);
